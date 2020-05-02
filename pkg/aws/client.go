@@ -4,21 +4,18 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
-	"github.com/aws/aws-sdk-go/service/iam/stsiface"
 	"github.com/aws/aws-sdk-go/service/sts"
-	"gitlab.cee.redhat.com/service/moactl/pkg/logging"
+	"github.com/aws/aws-sdk-go/service/sts/stsiface"
+	"github.com/jharrington22/awsutil/pkg/logging"
+	"github.com/sirupsen/logrus"
 )
 
 type Client interface {
-	GetRegion() string
-	ValidateCredentials() (bool, error)
-	EnsureOsdCcsAdminUser() (bool, error)
-	CreateAccessKey(username string) (*AWSAccessKey, error)
-	GetCreator() (*AWSCreator, error)
-	TagUser(username string, clusterID string, clusterName string) error
-	ValidateSCP() (bool, error)
+	ValidateCredentials()
 }
 
 // ClientBuilder contains the information and logic needed to build a new AWS client.
@@ -63,6 +60,7 @@ func (b *ClientBuilder) Build() (result Client, err error) {
 	// Create the AWS session:
 	sess, err := session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
+		Profile:           "personal",
 	})
 	sess.Config.Logger = logger
 	sess.Config.HTTPClient = &http.Client{
@@ -106,4 +104,10 @@ func (b *ClientBuilder) Build() (result Client, err error) {
 	}
 
 	return
+}
+
+func (c *awsClient) ValidateCredentials() {
+	fmt.Println("Validate creds")
+	fmt.Println(c.stsClient.GetCallerIdentity(&sts.GetCallerIdentityInput{}))
+
 }

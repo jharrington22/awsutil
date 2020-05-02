@@ -17,7 +17,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/jharrington22/awsutil/pkg/aws"
+	"github.com/jharrington22/awsutil/pkg/logging"
 	"github.com/spf13/cobra"
 )
 
@@ -48,4 +51,20 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// generateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	// Create the logger:
+	logger, err := logging.NewLogger().Build()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	// Create the AWS client:
+	client, err := aws.NewClient().
+		Logger(logger).
+		Build()
+	if err != nil {
+		os.Exit(1)
+	}
+
+	client.ValidateCredentials()
 }
